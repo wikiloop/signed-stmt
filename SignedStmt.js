@@ -78,7 +78,8 @@ function xblAddButtons() {
         const revId = $(this).data("mwRevid");
         $(`<div 
             style='display: inline-block; 
-                padding: 4px 4px; 
+                padding: 4px 8px; 
+                margin-left: 8px; 
                 margin-right: 8px; 
                 border: 1px solid #ccc; 
                 border-radius: 4px; 
@@ -104,6 +105,7 @@ function xblAddButtons() {
                     $(`<div 
                     style='display: inline-block;'
                     data-xbl="true"
+                    data-xbl-endorser='${key}'
                     data-mw-revid='${revId}'>
                     <img 
                         style='width: 20px; height: 20px; margin: 4px;'
@@ -115,6 +117,7 @@ function xblAddButtons() {
                     $(`<div 
                     style='display: inline-block;'
                     data-xbl="true"
+                    data-xbl-endorser='${key}'
                     data-mw-revid='${revId}'>
                     <img 
                         style='width: 20px; height: 20px; margin: 4px;'
