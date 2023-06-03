@@ -53,12 +53,24 @@ async function loadEndorsements(subject, revId) {
     return currentEndorsements;
 }
 
+async function validate(endorsement) {
+    const normalizedMsg = JSON.parse(endorsement.content);
+    const signer = normalizedMsg.sigMeta.signer;
+    const recoveredAccount = await ethereum.request({
+        method: 'personal_ecRecover',
+        params: [endorsement.content, endorsement.signature]
+    });
+    console.log("signer", signer);
+    console.log("recoveredAccount", recoveredAccount);
+    return recoveredAccount.toLowerCase() === signer.toLowerCase();
+}
+
 function xblAddButtons() {
     $('*[data-xbl="true"]').remove();
     // parsing "Q42" from the following URL
     // https://www.wikidata.org/w/index.php?title=Q42&action=history
     const subject = extractTitle(window.location.href);
-    
+
     $("section > ul > li").filter(function () {
         return $(this).data("mwRevid");
     }).map(async function () {
@@ -82,21 +94,37 @@ function xblAddButtons() {
         // get endorsements
         let currentEndorsements = await loadEndorsements(subject, revId);
         console.log(`currentEndorsements for ${revId} =`, currentEndorsements);
+        
         // if there are endorsements, add a verify button
         if (Object.keys(currentEndorsements).length > 0) {
-            $(`<div 
-                style='display: inline-block;'
-                data-xbl="true"
-                data-mw-revid='${revId}'>
-                <img 
-                    style='width: 20px; height: 20px; margin: 4px;'
-                     src="https://img.icons8.com/ios/50/12AB1D/verified-account.png" alt="checkmark"/>
-            </div>`)
-            .insertAfter($("span.mw-history-histlinks.mw-changeslist-links", this));
+            for (let key of Object.keys(currentEndorsements)) {
+                let endorsement = currentEndorsements[key];
+                if (await validate(endorsement)) {
+                    console.log("valid endorsement", endorsement);
+                    $(`<div 
+                    style='display: inline-block;'
+                    data-xbl="true"
+                    data-mw-revid='${revId}'>
+                    <img 
+                        style='width: 20px; height: 20px; margin: 4px;'
+                         src="https://img.icons8.com/ios/50/12AB1D/verified-account.png" alt="checkmark"/>
+                    </div>`)
+                    .insertAfter($("span.mw-history-histlinks.mw-changeslist-links", this));
+                } else {
+                    console.log("inValid endorsement", endorsement);
+                    $(`<div 
+                    style='display: inline-block;'
+                    data-xbl="true"
+                    data-mw-revid='${revId}'>
+                    <img 
+                        style='width: 20px; height: 20px; margin: 4px;'
+                         src="https://img.icons8.com/ios/50/FCC419/verified-account.png" alt="checkmark"/>
+                    </div>`)
+                    .insertAfter($("span.mw-history-histlinks.mw-changeslist-links", this));    
+                }
 
-        //     <div>
-        //     <i data-mw-revid='${revId}' style='color:green' class="gg-check-o"></i>
-        // </div>
+            }
+
         }
     });
 
